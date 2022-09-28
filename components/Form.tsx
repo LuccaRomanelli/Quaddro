@@ -201,7 +201,7 @@ export default function Form() {
         <tbody>
           {sortedData().map((item) => {
             return (
-              <tr>
+              <tr key={item.title}>
                 <td>{item.title}</td>
                 <td>{item.dataInicio}</td>
                 <td>{item.dataFim}</td>
