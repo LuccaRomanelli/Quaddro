@@ -1,14 +1,41 @@
 import { MouseEventHandler, useCallback, useState } from "react";
-import { useForm } from "react-hook-form";
+import {
+	FieldErrorsImpl,
+	FieldValues,
+	useForm,
+	UseFormRegister
+} from "react-hook-form";
 import moment from "moment";
+
+type SortOrder = "ascn" | "desc";
+
+type SortKeys = keyof SendDataInterface;
 interface SendDataInterface {
 	title: string;
 	dataInicio: string;
 	dataFim: string;
 }
-type SortOrder = "ascn" | "desc";
 
-type SortKeys = keyof SendDataInterface;
+interface HeadersInterface {
+	key: SortKeys;
+	label: string;
+}
+
+interface TableInterface {
+	headers: HeadersInterface[];
+	sortOrder: SortOrder;
+	sortKey: SortKeys;
+	changeSort: any;
+	sortedData: any;
+}
+
+interface FormFieldInterface {
+	label: string;
+	register: UseFormRegister<FieldValues>;
+	registerId: string;
+	errors: FieldErrorsImpl<{ [x: string]: any }>;
+	type: string;
+}
 
 function SortButton({
 	sortOrder,
@@ -35,7 +62,7 @@ function SortButton({
 	);
 }
 
-function Table(props) {
+function Table(props: TableInterface) {
 	const { headers, sortOrder, sortKey, changeSort, sortedData } = props;
 	return (
 		<table>
@@ -74,7 +101,7 @@ function Table(props) {
 	);
 }
 
-function FormField(props) {
+function FormField(props: FormFieldInterface) {
 	const { label, register, registerId, errors, type } = props;
 	return (
 		<div>
@@ -94,7 +121,7 @@ export default function Form() {
 		formState: { errors }
 	} = useForm();
 
-	const [theArray, setTheArray] = useState<SendDataInterface[]>([]);
+	const [appointments, setAppointments] = useState<SendDataInterface[]>([]);
 	const [sortKey, setSortKey] = useState<SortKeys>("title");
 	const [sortOrder, setSortOrder] = useState<SortOrder>("ascn");
 	const [errorData, setErrorData] = useState<Boolean>(false);
@@ -120,7 +147,7 @@ export default function Form() {
 		if (dateInicio > dateFim) {
 			setErrorData(true);
 		} else {
-			var erro = theArray.map(function (arr) {
+			var erro = appointments.map(function (arr) {
 				const dateInicioComp = moment().format(arr.dataInicio);
 				const dateFimComp = moment().format(arr.dataFim);
 				const dataInico = moment().format(sendData.dataInicio);
@@ -142,7 +169,7 @@ export default function Form() {
 			} else if (erro.includes("Data fim no meio")) {
 				setErrorDataFim(true);
 			} else {
-				setTheArray([...theArray, sendData]);
+				setAppointments([...appointments, sendData]);
 			}
 		}
 	}
@@ -158,7 +185,7 @@ export default function Form() {
 	}) {
 		if (!sortKey) return tableData;
 
-		const sortedData = theArray.sort((a, b) => {
+		const sortedData = appointments.sort((a, b) => {
 			return a[sortKey] > b[sortKey] ? 1 : -1;
 		});
 
@@ -171,8 +198,12 @@ export default function Form() {
 
 	const sortedData = useCallback(
 		() =>
-			sortData({ tableData: theArray, sortKey, reverse: sortOrder === "desc" }),
-		[theArray, sortKey, sortOrder]
+			sortData({
+				tableData: appointments,
+				sortKey,
+				reverse: sortOrder === "desc"
+			}),
+		[appointments, sortKey, sortOrder]
 	);
 
 	function changeSort(key: SortKeys) {
